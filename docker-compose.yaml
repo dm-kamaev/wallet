@@ -4,6 +4,7 @@ services:
 
   backend:
     build: .
+    container_name: wallet_backend
     # image: backend
     ports:
       - "3000:3000"
@@ -12,6 +13,8 @@ services:
     command: npm run start:dev
     volumes:
       - .:/wallet
+    depends_on:
+      - pg
 
   pg:
     image: 'postgres:15.1-alpine'

@@ -1,5 +1,8 @@
+import * as Decimal from 'decimal';
 import { Injectable } from '@nestjs/common';
 import db from '../lib/db';
+import DaoAccounts from '../dao/DaoAccounts';
+import { NotFoundException, InsufficientFundException } from '../exception';
 
 @Injectable()
 export class TransferService {
@@ -13,73 +16,52 @@ export class TransferService {
     amount: number;
   }) {
     await db.transaction().execute(async (trx) => {
-      const sourceAccount = await trx
-        .selectFrom('accounts')
-        .select('balance')
-        .where('account_id', '=', sourceAccountId)
-        .forUpdate()
-        .executeTakeFirst();
+      const daoAccounts = new DaoAccounts(trx);
+      const [sourceAccount, targetAccount] = await Promise.all([
+        daoAccounts.getByAccountId(sourceAccountId),
+        daoAccounts.getByAccountId(targetAccountId),
+      ]);
+
       if (!sourceAccount) {
-        throw new Error(`Not found account with id = ${sourceAccountId}`);
+        throw new NotFoundException(
+          `Not found account with id = ${sourceAccountId}`,
+        );
       }
-      const targetAccount = await trx
-        .selectFrom('accounts')
-        .select('balance')
-        .where('account_id', '=', targetAccountId)
-        .forUpdate()
-        .executeTakeFirst();
 
       if (!targetAccount) {
-        throw new Error(`Not found account with id = ${targetAccountId}`);
+        throw new NotFoundException(
+          `Not found account with id = ${targetAccountId}`,
+        );
       }
-      const b1 = new Rub({ decimal: sourceAccount.balance + '' }).minus(
-        new Rub({ decimal: amount + '' }),
+
+      const sourceBalance: number = new Decimal(sourceAccount.balance + '')
+        .sub(amount + '')
+        .toNumber();
+
+      if (sourceBalance <= 0) {
+        throw new InsufficientFundException(
+          `Insufficient fund on account (account_id = ${sourceAccountId}) for transfer (amount = ${amount})`,
+        );
+      }
+
+      await daoAccounts.updateAmount({
+        accountId: sourceAccountId,
+        balance: sourceBalance,
+      });
+
+      const targetBalance: number = new Decimal(targetAccount.balance + '')
+        .add(amount + '')
+        .toNumber();
+
+      await daoAccounts.updateAmount({
+        accountId: targetAccountId,
+        balance: targetBalance,
+      });
+
+      console.log(
+        { sourceBalance, targetBalance },
+        { sourceBalance, targetBalance, amount },
       );
-      await trx
-        .updateTable('accounts')
-        .set({ balance: b1.toDecimal() })
-        .where('account_id', '=', sourceAccountId)
-        .execute();
-      // const b2 = targetAccount.balance + amount;
-
-      const b2 = new Rub({ decimal: targetAccount.balance + '' }).plus(
-        new Rub({ decimal: amount + '' }),
-      );
-
-      await trx
-        .updateTable('accounts')
-        .set({ balance: b2.toDecimal() })
-        .where('account_id', '=', targetAccountId)
-        .execute();
-
-      console.log({ b1, b2 });
     });
-
-    return { sourceAccountId, targetAccountId, amount };
-  }
-}
-
-class Rub {
-  public readonly val: number;
-  constructor(input: { decimal: string } | { int: number }) {
-    if ('decimal' in input) {
-      this.val = parseFloat(input.decimal) * 100;
-    } else if ('int' in input) {
-      this.val = input.int;
-    } else {
-      throw new Error(`Invalid input ${JSON.stringify(input)}`);
-    }
-  }
-
-  plus(amount: Rub) {
-    return new Rub({ int: this.val + amount.val });
-  }
-
-  minus(amount: Rub) {
-    return new Rub({ int: this.val - amount.val });
-  }
-
-  toDecimal() {
-    return this.val / 100;
   }
 }

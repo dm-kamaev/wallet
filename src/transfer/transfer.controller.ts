@@ -1,9 +1,6 @@
 import { Controller, Post, Body, Param } from '@nestjs/common';
 import { TransferService } from './transfer.service';
-
-class TransferDto {
-  amount: number;
-}
+import TransferDto from './transfer.dto';
 
 @Controller()
 export class TransferController {
@@ -15,6 +12,7 @@ export class TransferController {
     @Param('targetAccountId') targetAccountId: string,
     @Body() transferDto: TransferDto,
   ) {
+    console.log(transferDto);
     return await this.transferService.transfer({
       sourceAccountId,
       targetAccountId,

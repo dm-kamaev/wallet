@@ -1,9 +1,9 @@
 import * as pg from 'pg';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-require('pg-parse-float')(pg); // ???
+require('pg-parse-float')(pg); // auto apply parseFloat for decimal and numeric
 
 import { Pool } from 'pg';
-import { Kysely, PostgresDialect } from 'kysely';
+import { Kysely, PostgresDialect, Transaction } from 'kysely';
 
 interface Accounts {
   account_id: string;
@@ -24,13 +24,12 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
 });
-// console.log(pool);
-// // const result = await pool.query('SELECT $1::text as name', ['brianc']);
-// // const result = await pool.query('select version()');
-// const result = await pool.query('select * from accounts');
-// console.log(result);
+
+export type DB = Kysely<Database>;
+export type TRX = Transaction<Database>;
 
 const db = new Kysely<Database>({
   dialect: new PostgresDialect({ pool }),
 });
+
 export default db;
