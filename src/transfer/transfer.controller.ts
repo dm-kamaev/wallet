@@ -12,7 +12,6 @@ export class TransferController {
     @Param('targetAccountId') targetAccountId: string,
     @Body() transferDto: TransferDto,
   ) {
-    console.log(transferDto);
     return await this.transferService.transfer({
       sourceAccountId,
       targetAccountId,

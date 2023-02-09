@@ -28,7 +28,6 @@
     "nestjs-zod": "1.2.1",
     "pg": "8.9.0",
     "pg-parse-float": "0.0.1",
-    "pg-transactional-tests": "1.0.7",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0"
   },

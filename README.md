@@ -1,5 +1,8 @@
 ## Description
-
+Http коды ошибок:
+400 - неверные данные: cумма не указана или <= 0 и т.д.
+404 - сущность (аккаунт) не найдена
+422 - операция нельзя совершить: нехватает средств, превышение лимита
 
 
 ## Installation
@@ -12,8 +15,12 @@ npm install
 ```bash
 # up containers
 make up
+
 # down containers
 make down
+
+# run test
+make test
 ```
 
 ## API

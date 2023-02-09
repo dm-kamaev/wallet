@@ -1,13 +1,7 @@
-import {
-  patchPgForTransactions,
-  startTransaction,
-  rollbackTransaction,
-  unpatchPgForTransactions,
-} from 'pg-transactional-tests';
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { AccountController } from './account.controller';
 import { AccountService } from './account.service';
+import { NotFoundException } from '../exception';
 
 import db from '../lib/db';
 
@@ -20,15 +14,14 @@ describe('AccountController', () => {
   };
 
   beforeAll(async () => {
-    patchPgForTransactions();
-    await startTransaction();
-
     await db.insertInto('accounts').values(account).execute();
   });
 
   afterAll(async () => {
-    await rollbackTransaction();
-    unpatchPgForTransactions();
+    await db
+      .deleteFrom('accounts')
+      .where('account_id', '=', account.account_id)
+      .execute();
 
     await db.destroy();
   });
@@ -52,8 +45,8 @@ describe('AccountController', () => {
   });
 
   it('not found account', async () => {
-    await expect(
-      accountController.getAccount('3453534533534'),
-    ).rejects.toThrow(Error);
+    await expect(accountController.getAccount('3453534533534')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });

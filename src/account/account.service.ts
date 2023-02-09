@@ -11,13 +11,6 @@ export class AccountService {
     if (!account) {
       throw new NotFoundException(`Not found account with id = ${id}`);
     }
-    // console.log(account);
-
-    const result2 = await db
-      .selectFrom('accounts')
-      .select(['account_id', 'balance'])
-      .execute();
-    console.log(result2);
 
     return { balance: account.balance };
   }

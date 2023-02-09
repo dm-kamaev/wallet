@@ -2,7 +2,11 @@ import * as Decimal from 'decimal';
 import { Injectable } from '@nestjs/common';
 import db from '../lib/db';
 import DaoAccounts from '../dao/DaoAccounts';
-import { NotFoundException, InsufficientFundException } from '../exception';
+import {
+  NotFoundException,
+  InsufficientFundException,
+  OverlimitException,
+} from '../exception';
 
 @Injectable()
 export class TransferService {
@@ -53,15 +57,16 @@ export class TransferService {
         .add(amount + '')
         .toNumber();
 
+      if (targetBalance > 9_999_999_999.99) {
+        throw new OverlimitException(
+          `Overlimit, max value for account (account_id = ${targetAccountId}) is ${9_999_999_999.99}`,
+        );
+      }
+
       await daoAccounts.updateAmount({
         accountId: targetAccountId,
         balance: targetBalance,
       });
-
-      console.log(
-        { sourceBalance, targetBalance },
-        { sourceBalance, targetBalance, amount },
-      );
     });
   }
 }
