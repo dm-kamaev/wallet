@@ -98,7 +98,7 @@ describe('TransferController', () => {
       transferController.transfer(
         sourceAccount.account_id,
         targetAccount.account_id,
-        { amount: 2 },
+        { amount: 1.99 },
       ),
       transferController.transfer(
         sourceAccount.account_id,
@@ -108,7 +108,7 @@ describe('TransferController', () => {
       transferController.transfer(
         sourceAccount.account_id,
         targetAccount.account_id,
-        { amount: 18 },
+        { amount: 18.01 },
       ),
       transferController.transfer(
         sourceAccount.account_id,

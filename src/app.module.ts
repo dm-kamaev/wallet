@@ -3,7 +3,6 @@ import { AccountModule } from './account/account.module';
 import { TransferModule } from './transfer/transfer.module';
 import { ZodValidationPipe } from 'nestjs-zod';
 
-
 @Module({
   imports: [AccountModule, TransferModule],
   controllers: [],
